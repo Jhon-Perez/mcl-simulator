@@ -1,3 +1,5 @@
+mod sensor;
+
 use std::f32::consts::TAU;
 
 use ggez::{
@@ -7,13 +9,16 @@ use ggez::{
     input::keyboard::KeyCode,
 };
 
-const FIELD_SIZE: f32 = 140.42;
+use crate::sensor::{draw_sensor, Sensor, MAX_DIST};
+
+pub const FIELD_SIZE: f32 = 140.42;
 
 struct Robot {
     x: f32,
     y: f32,
     h: f32,
     size: f32,
+    sensors: Vec<Sensor>,
 }
 
 impl Robot {
@@ -23,6 +28,20 @@ impl Robot {
             y: 100.0,
             h: 0.0,
             size: 14.5, // 14.9
+            sensors: vec![
+                Sensor {
+                    offset_x: 0.0,
+                    offset_y: 0.0,
+                    offset_h: 0.0,
+                    max_dist: MAX_DIST,
+                },
+                Sensor {
+                    offset_x: 0.0,
+                    offset_y: 0.0,
+                    offset_h: 90.0f32.to_radians(),
+                    max_dist: MAX_DIST,
+                },
+            ],
         })
     }
 }
@@ -103,6 +122,10 @@ impl EventHandler for Robot {
                 .dest([screen_x, screen_y])
                 .rotation(-self.h),
         );
+
+        for sensor in &self.sensors {
+            draw_sensor(ctx, &mut canvas, sensor, self, scale)?;
+        }
 
         canvas.finish(ctx)?;
         Ok(())
